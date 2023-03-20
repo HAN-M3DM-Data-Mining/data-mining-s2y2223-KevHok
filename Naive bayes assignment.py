@@ -16,7 +16,7 @@
 #library(wordcloud)
 #library(e1071)
 #```
-# super test der testen
+
 #Choose a suitable dataset from [this](https://github.com/HAN-M3DM-Data-Mining/assignments/tree/master/datasets) folder and train your own Naive Bayes model. Follow all the steps from the CRISP-DM model.
 
 ## Business Understanding
