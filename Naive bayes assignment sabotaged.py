@@ -42,11 +42,11 @@ from wordcloud import WordCloud
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy.score
 from sklearn.metrics import confusion_matrix
 
 url = "C:/Users/hoksb/OneDrive/Documenten/GitHub/data-mining-s2y2223-KevHok/datasets/NB-fakenews.csv"
-rawDF = pd.read_csv(url)
+rawDF = pd.read_excel(url)
 rawDF.head()
 
 # rawDF.replace(to_replace = 0, value="real", inplace=True)
@@ -78,7 +78,7 @@ fig, (wc1, wc2) = plt.subplots(1, 2)
 fig.suptitle('Wordclouds for fake news')
 wc1.imshow(wordcloudReal)
 wc2.imshow(wordcloudFake)
-plt.show()
+plt.show(wordcloudFake)
 
 vectorizer = TfidfVectorizer(max_features=1000)
 vectors = vectorizer.fit_transform(prepData.text)
@@ -97,9 +97,9 @@ accuracyScore = accuracy_score(yTrue, yPred)
 print(f'Accuracy: {accuracyScore}')
 
 matrix = confusion_matrix(yTrue, yPred)
-labelNames = pd.Series(['0', '1'])
+labelNames = pd.Series([0, 1])
 betterMatrix = pd.DataFrame(matrix, columns='Predicted ' + labelNames, index='Is ' + labelNames)
-print(betterMatrix)
+#print(betterMatrix)
 
 
 
