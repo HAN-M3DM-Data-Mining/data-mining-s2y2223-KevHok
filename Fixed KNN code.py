@@ -4,6 +4,26 @@ Created on Wed Apr  5 20:54:07 2023
 
 @author: hoksb
 """
+#errors found:
+#Line 10: was import pandas as pandas 
+#is import pandas as pd
+
+#Line 15: was from sklearn.metrics import accuracy_scores 
+# is from sklearn.metrics import accuracy_score
+
+#Line 19: was rawData = pd.read_xslx(URL) 
+# is rawData = pd.read_csv(URL)
+
+#Line 54: def normalize(x):
+#was   return (((max)x - min(x)) / (max(x) - min(x)))
+              # function to normalize
+
+#is def normalize(x):
+#    return (((x) - min(x)) / (max(x) - min(x)))
+              # function to normalize
+              
+#Line 43: was #prepData.info()
+# is prepData.info()
 
 #Library import
 
@@ -51,7 +71,7 @@ prepData.info()
 
 
 def normalize(x):
-    return ((max(x) - min(x)) / (max(x) - min(x)))
+    return (((x) - min(x)) / (max(x) - min(x)))
               # function to normalize
 
 
@@ -85,7 +105,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 #     predict the class based on the majority class among the K nearest neighbors
 
 # Model in python code:
-knn = KNeighborsClassifier(n_neighbors=4.5)
+knn = KNeighborsClassifier(n_neighbors=5)
 # This means that it will classify the data using it's 5 nearest neighbours.
 # So in other words: I have 5 neighbours with similar data, what is their classification? If most or all, for example, are category 1, it will apply category 1.
 
