@@ -1,8 +1,8 @@
 ---
-title: "Assigment - kNN DIY"
+title: "Assigment - kNN DIY Diabetes"
 author:
-  - name author here - Author
-  - name reviewer here - Reviewer
+  - Robin de Pagter - Author
+  - Kevin Hoksbergen - Reviewer
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
    html_notebook:
@@ -10,29 +10,147 @@ output:
     toc_depth: 2
 ---
 
-
-```{r}
-library(tidyverse)
-library(googlesheets4)
-library(class)
-library(caret)
+**All libraries and functions used in this project:**
+```{python}
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 ```
 
-Choose a suitable dataset from [this](https://github.com/HAN-M3DM-Data-Mining/assignments/tree/master/datasets) folder and train  your own kNN model. Follow all the steps from the CRISP-DM model.
 
-## Business Understanding
-text and code here
+## Business Understanding - Diabetes data
+The dataset that is used in this kNN model, is that of people above the age of 21 who have been tested for diabetes. Some of these people are diabetic and some were tested not to be diabetic. The goal of the machine learning model that will be built is to determine, with the available data, whether or not a person could possibly be diabetic. By simply testing certain parts of the person's health, we could use the ML-model to quickly determine which person could have diabetes and who could not. This can then be used to further aid the person that has been tested.
 
-## Data Understanding
-text and code here
+## Data Understanding - Loading the data
+The data used is that of the "National Institute of Diabetes and Digestive and Kidney Diseases" and has been made available for research purposes. The dataset includes certain values that are used to determine possible diabetes, like bloodpressure, insulin, and BMI. All data originates from atleast 21 year old females of Pima Indian Heritage
 
-## Data Preparation
-text and code here
+The data is in the format of CSV for easy use, it will be imported from a github enviroment.
 
-## Modeling
-text and code here
+To load the data into our script, the following code will be used:
+
+```{python}
+URL = "datasets\KNN-diabetes.csv"
+rawData = pd.read_csv(URL)
+```
+
+To preview the columns and their data types, the following line of code can be used:
+
+```{python}
+rawData.info()
+```
+
+## Data Preparation - Transforming the data
+All data inside the data set is relevant for making predictions. There are no ID's or other columns that have no relation to the health of the patient being tested, this is why we will use every column available. 
+
+```{python}
+#As far as the dataset goes, there are no columns that can not be used for predicting diabetes in other words: nothing has to be eliminated from the dataset.
+prepData = rawData
+prepData.head()
+```
+
+According to the dataset's description, the column 'Outcome' contains the answers we want to predict. A 0 means the patient was tested but does not have diabetes, and a 1 means the patient that was tested did in fact have diabetes. Using the following lines of code, we can quickly determine how many patients were tested positively and negatively. We will also add a line of code to determine a normalized view of these results:
+
+```{python}
+#The column 'Outcome' is what we want to predict, 1 is tested and diagnosed with Diabetes and 0 is tested but not diagnosed with diabetes.
+cntOutcome = prepData['Outcome'].value_counts()
+propOutcome = prepData['Outcome'].value_counts(normalize=True)
+
+#Amount of Outcomes
+cntOutcome
+
+#Normalized amount of Outcomes
+propOutcome
+```
+
+To be able to use this field in our algorithm we will have to convert the datatype from the 'int64' to 'category'
+
+```{python}
+#Transform the column 'Outcome' to the type Category instead of integer. 
+#This is necessary since most models in general cannot use an Integer as a category, they require a column of the type 'Category
+categoryType = pd.CategoricalDtype(categories=[0, 1], ordered=False)
+prepData['Outcome'] = prepData['Outcome'].astype(categoryType)
+prepData['Outcome']
+```
+
+To prepare our data for the model we must first normalize it. This will prevent certain broader ranges of data to negatively influence our outcomes. To normalize our data we will create a normalizing function:
+
+```{python}
+def normalize(x):
+  return((x - min(x)) / (max(x) - min(x))) #function to normalize
+```
+
+We will then use this function on our data as following:
+
+```{python}
+excluded = ['Outcome'] #This column will be excluded
+X = prepData.loc[:, ~prepData.columns.isin(excluded)] #This will fetch the data minus the excluded column and put it into the variable X
+X = X.apply(normalize, axis=0) #This will drag the variable X through the normalize function
+
+#To view the results of our normalized data, we use the following code
+X[['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']].describe()
+```
+
+Now that our data is normalized, we can start by splitting our set into 2: a test set and a training set. The training set will be used to train our model while the test will be used to see if our model is trained well.
+
+```{python}
+#The test set is 0.3 or 30% of our total dataset, the remainder is used to train our data.
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=123, stratify=y)
+```
+
+Our data is now prepared and ready to enter the model.
+
+## Modeling - Machine Learning
+According to the information in our Data Mining in Python workbook, KNN is an instance-based learning algorithm. It stores all of the training data and makes predictions based on the similarity between the input instance and the stored instances. The prediction is based on the majority class among the K nearest neighbors of the input instance.
+
+KNN in pseudocode: 
+```{python}
+for each instance in the test set:
+    for each instance in the training set:
+        calculate the distance between the two instances
+    sort the distances in ascending order
+    find the K nearest neighbors
+    predict the class based on the majority class among the K 
+```
+
+We only need a few lines of code to train our model using the fit() function. This will train our model to be applied to the test data. It goes as follows:
+
+```{python}
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train, y_train)
+```
+
+Now using the predict function, we can use the trained model to predict the test data:
+
+```{python}
+y_pred = knn.predict(X_test)
+```
+
+The predicted and actual outcomes can now be visualized in a table like the diffusion table. For this diffusion table we will use the confusionmatrix functions.
+
+```{python}
+cm = confusion_matrix(y_test, y_pred, labels=knn.classes_)
+cm
+
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=knn.classes_)
+disp.plot()
+
+plt.show()
+```
 
 ## Evaluation and Deployment
-text and code here
+A simple evaluation of our model can be done with code as well as looking at our generated diffusion table.
 
+The code that we can use will simply give the values for how accurate our model was and how efficient it was:
+```{python}
+#Check performance using accuracy - Accuracy score of the model
+print(accuracy_score(y_test, y_pred))
+#Check performance using roc - Efficiency score of the model
+roc_auc_score(y_test, y_pred)
+```
+
+If we take a look at our earlier diffusion table, we can see that the model generated a lot of false negatives which could indicate that our model was not extremely accurate. The code however indicates that our model was about 76% accurate and 70% efficient.
+
+## Reviewer' notes
 reviewer adds suggestions for improving the model
